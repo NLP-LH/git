@@ -1,4 +1,4 @@
-package User;
+package Util;
 
 /**
  * Created by liuhui on 15/10/21.
@@ -11,8 +11,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 
+import User.User;
+
 public class InputAndOutput {
-	public void Output(HashMap<String,User> UserMap) {
+	public static void Output(HashMap<String,User> UserMap) {
 		try {
 			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("UserMap"));// ；ObjectOutputStream能把Object输出成Byte流
 			oos.writeObject(UserMap);
@@ -27,7 +29,7 @@ public class InputAndOutput {
 	}
 
 	@SuppressWarnings("unchecked")
-	public HashMap<String,User> Input() {
+	public static HashMap<String,User> Input() {
 //		File file =new File("UserMap");//先检查是否有文件，没有就返回NULL
 //		if(file.exists()){	
 //		}else{
