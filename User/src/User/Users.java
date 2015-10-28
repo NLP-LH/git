@@ -29,6 +29,7 @@ public class Users {
 	///////////////////////////////////////////////////////////////////////////////////////
 	//基本方法
 	public User getUser(String IM_UID){//根据用户ID取用户
+		//System.out.println(UserMap);
 		if(UserMap.containsKey(IM_UID)){		
 			return UserMap.get(IM_UID);
 		}else{	
@@ -39,7 +40,7 @@ public class Users {
 	public boolean deleteUser(String IM_UID){//删除一个用户
 		if(UserMap.containsKey(IM_UID)){	
 			UserMap.remove(IM_UID);
-			InputAndOutput.Output(UserMap);//保存到文件中
+			//InputAndOutput.Output(UserMap);//保存到文件中
 			return true;
 		}else{		
 			return false;
@@ -52,7 +53,7 @@ public class Users {
 		}		
 		User newUser=new User(IM_UID,nickname,homeAddress,companyAddress,userInfor,friendRel);
 		UserMap.put(IM_UID, newUser);
-		InputAndOutput.Output(UserMap);//保存到文件中
+		//InputAndOutput.Output(UserMap);//保存到文件中
 		return true;
 	}
 	
@@ -62,7 +63,7 @@ public class Users {
 			return false;
 		}		
 		UserMap.put(user.getIM_UID(), user);
-		InputAndOutput.Output(UserMap);//保存到文件中
+		//InputAndOutput.Output(UserMap);//保存到文件中
 		return true;
 	}
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -81,9 +82,11 @@ public class Users {
 	
 	public boolean revise(String IM_UID,String type,String text){//镇权修改属性方法，需要改成WEB接口
 		User newUser = getUser(IM_UID);
-		if(newUser==null){		
+		if(newUser==null){	
+			System.out.println(UserMap);
 			return false;
 		}
+		//System.out.println("");
 		if(type.equals("Com")){
 			newUser.setCompanyAddress(text);
 		}else if(type.equals("Home")){
@@ -94,7 +97,7 @@ public class Users {
 			return false;
 		}
 		UserMap.put(IM_UID, newUser);
-		InputAndOutput.Output(Users.UserMap);
+		//InputAndOutput.Output(Users.UserMap);
 		return true;	
 	}
 
@@ -111,32 +114,35 @@ public class Users {
 		return true;
 	}
 	
-	public boolean addFriend(String IM_UID,String friendIM_UID){//添加好友
+	public boolean addFriend(String IM_UID,String friendID,String alias){//添加好友
 		User User = getUser(IM_UID);
-		User friendUser = getUser(friendIM_UID);
+		User friendUser = getUser(friendID);
 		if(User==null||friendUser==null){		
 			return false;
 		}
 		String nickname=friendUser.getNickname();
+		if(alias==null||alias.equals("")){
+			alias=nickname;
+		}
 		HashMap<String,String> friendRel=User.getFriendRel();
 		if(friendRel==null){
 			friendRel=new HashMap<String,String>();//好友关系，KEY是用户的ID，VALUE是用户的昵称	
-			friendRel.put(friendIM_UID, nickname);
+			friendRel.put(friendID, alias);
 			User.setFriendRel(friendRel);
 			UserMap.put(IM_UID, User);	
-			InputAndOutput.Output(UserMap);
+			//InputAndOutput.Output(UserMap);
 		}else{
-			friendRel.put(friendIM_UID, nickname);
+			friendRel.put(friendID, alias);
 			User.setFriendRel(friendRel);
 			UserMap.put(IM_UID, User);	
-			InputAndOutput.Output(UserMap);
+			//InputAndOutput.Output(UserMap);
 		}	
 		return true;
 	}
 	
-	public boolean deleteFriend(String IM_UID,String friendIM_UID){//删除好友
+	public boolean deleteFriend(String IM_UID,String friendID){//删除好友
 		User User = getUser(IM_UID);
-		User friendUser = getUser(friendIM_UID);
+		User friendUser = getUser(friendID);
 		if(User==null||friendUser==null){		
 			return false;
 		}
@@ -144,16 +150,43 @@ public class Users {
 		if(friendRel==null){
 			return false;
 		}else{
-			if(friendRel.containsKey(friendIM_UID)){
-				friendRel.remove(friendIM_UID);
+			if(friendRel.containsKey(friendID)){
+				friendRel.remove(friendID);
 				User.setFriendRel(friendRel);
 				UserMap.put(IM_UID, User);	
-				InputAndOutput.Output(UserMap);
+				//InputAndOutput.Output(UserMap);
 				return true;
 			}else{			
 				return false;
 			}
 		}
+	}
+	
+	public boolean modifyFriendalias(String IM_UID,String friendID,String alias){ //no True returned
+		User User = getUser(IM_UID);
+		if(User==null){		
+			return false;
+		}
+		if(alias==null||alias.equals("")){
+			User friendUser = getUser(friendID);
+			if(friendUser==null){		
+				return false;
+			}
+			alias=friendUser.getNickname();
+		}
+		HashMap<String,String> friendRel=User.getFriendRel();
+		if(friendRel.containsKey(friendID)){
+			if(alias==null||alias.equals("")){	
+				return false;
+			}else{			
+				friendRel.put(friendID, alias);
+				User.setFriendRel(friendRel);
+				UserMap.put(IM_UID, User);	
+				//InputAndOutput.Output(UserMap);
+				return true;
+			}	
+		}
+		return false;
 	}
 	
 	//查询用户 

@@ -4,6 +4,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import Util.InputAndOutput;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -18,6 +20,9 @@ import java.util.HashMap;
  * Created by Jeven on 26/10/2015.
  */
 public class UserServer {
+
+	final static int timeInterval = 300000;
+
 	public void startServer(int port) {
 		try {
 			// 允许最大连接数
@@ -71,35 +76,51 @@ public class UserServer {
 									nickname = params.get("nickname").get(0);
 									String homeAddress = null;
 									String companyAddress = null;
-									if(req.contains("homeAddress=")){										
-										homeAddress= params.get("homeAddress").get(0);
+									if (req.contains("homeAddress=")) {
+										homeAddress = params.get("homeAddress").get(0);
 									}
-									if(req.contains("companyAddress=")){										
-										companyAddress= params.get("companyAddress").get(0);
+									if (req.contains("companyAddress=")) {
+										companyAddress = params.get("companyAddress").get(0);
 									}
-									//System.out.println(params.get("address"));
+									// System.out.println(params.get("address"));
 									if (us.signUp(IM_UID, nickname, homeAddress, companyAddress)) {
 										res = "User registered successfully.";
 									} else {
 										res = "User already existed.";
-									}	
+									}
 								} else {
 									res = "Illegal query string...";
 								}
 							} else if (req.contains("profile")) {// 是修改请求
-								if (req.contains("friendIM_UID")) {
-									String friendIM_UID = params.get("friendIM_UID").get(0);
+								if (req.contains("friendID")) {
+									String friendID = params.get("friendID").get(0);
 									if (req.contains("addFriend")) {
-										if (us.addFriend(IM_UID, friendIM_UID)) {
+										String alias = null;
+										if (req.contains("alias=")) {
+											alias = params.get("alias").get(0);
+										}
+										if (us.addFriend(IM_UID, friendID, alias)) {
 											res = "Friend added successfully.";
 										} else {
-											res = "No friendIM_UID.";
+											res = "No friendID.";
 										}
 									} else if (req.contains("deleteFriend")) {
-										if (us.deleteFriend(IM_UID, friendIM_UID)) {
+										if (us.deleteFriend(IM_UID, friendID)) {
 											res = "Friend deleted successfully.";
 										} else {
-											res = "No friendIM_UID.";
+											res = "No friendID.";
+										}
+									} else if (req.contains("modifyFriendAlias")) {
+										String alias = null;
+										if (req.contains("alias=")) {
+											alias = params.get("alias").get(0);
+										}
+										// System.out.println(IM_UID+ friendID+
+										// alias+"ss");
+										if (us.modifyFriendalias(IM_UID, friendID, alias)) {
+											res = "modified successfully";
+										} else {
+											res = "modified failed";
 										}
 									} else {
 										res = "Illegal query string";
@@ -107,17 +128,18 @@ public class UserServer {
 								} else if (req.contains("revise")) {
 									if (req.contains("type") && req.contains("text")) {
 										type = params.get("type").get(0);
-										text = params.get("type").get(0);
+										text = params.get("text").get(0);
+										// System.out.println(IM_UID+type+text);
 										if (us.revise(IM_UID, type, text)) {
 											res = "Profile modified successfully.";
 										} else {
-											res = "User cannot be found.";
+											res = "User cannot be found or wrong type.";
 										}
 									} else {
 										res = "Illegal query string";
 									}
 								} else {
-									res = "No friendIM_UID";
+									res = "No friendID";
 								}
 							} else {
 								res = "Illegal query string";
@@ -178,6 +200,25 @@ public class UserServer {
 		int port = Integer.valueOf(arvgs[0]);
 		UserServer ss = new UserServer();
 		ss.startServer(port);
+		new Users();
+		// 隔一段固定的时间将内存中的Usermap写入到文件中
+		Runnable runnable = new Runnable() {
+			public void run() {
+				while (true) {
+
+					try {
+						Thread.sleep(timeInterval);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					InputAndOutput.Output(Users.UserMap);
+					System.out.println("stored");
+				}
+			}
+		};
+		Thread thread = new Thread(runnable);
+		thread.start();
+		// /////////////////
 	}
 
 }
